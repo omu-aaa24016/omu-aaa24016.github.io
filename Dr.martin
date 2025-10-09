@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>知識情報システム学演習2 よねだしんぺい</title>
+  <style>
+h1 {font-size: 160px;}
+p {
+font-size: 100px;
+color: red;
+}
+
+body {color: #AA4444;}
+
+</style>
+</head>
+<body>
+<i><b><h1>鈴木まひろ充電切れのため脱退</hi></b></i>
+<br>
+<p>10/1（水）16:01頃　大阪府堺市中百舌鳥町中区学園町なんちゃら、大阪公立大学なかもずキャンパスA1-東大教室にて、パソコンの充電切れを自身で誘発してしまう事案が発生しました。
+<br>※現在調査中です。</p>
+
+<p>
+	<a href="link.html">リンク集</a>
+</p>
+<p>
+	<a href="contents/paper.html">論文</a>
+</p>
+<p>
+	<a href="https://www.google.com">Google</a>
+</p>
+<p>
+	<a href="https://www.omu.ac.jp/"target="_blank">大阪公立大学</a>
+</p>
+
+</body>
+</html>
