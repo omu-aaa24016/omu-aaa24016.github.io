@@ -1,94 +1,129 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <title>第15回課題: 地震情報＆ルート検索マップ</title>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A==" crossorigin=""/>
-    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js" integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA==" crossorigin=""></script>
-</head>
-<body>
-    <div id="map" style="height: 90vh"></div>
-    <script>
-        const map = L.map('map', {
-            center: [34.546660, 135.503976], 
-            zoom: 10,
-        });
+    <head>
+        <title>第15回課題: 地震情報＆ルート検索マップ</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A==" crossorigin=""/>
+        <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js" integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA==" crossorigin=""></script>
+    </head>
+    <body>
+        <div id="map" style="height: 90vh"></div>
+        <script>
+            // ---------------------------------------------------------
+            // 1. 地図の初期化とレイヤー設定
+            // ---------------------------------------------------------
+            const map = L.map('map', {
+                center: [34.546660, 135.503976], 
+                zoom: 10, // 広域が見えるように少しズームアウト
+            });
 
-        const backgroundLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{
-            maxZoom: 19,
-            attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-        });
-        map.addLayer(backgroundLayer);
+            const backgroundLayer = L.tileLayer(
+                'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                {
+                    maxZoom: 19,
+                    attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                },
+            );
+            map.addLayer(backgroundLayer);
+            
+            const chiriinLayer = L.tileLayer(
+                'https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png',
+                {
+                    maxZoom: 18,
+                    attribution: '<a href="https://maps.gsi.go.jp/development/ichiran.html">地理院地図</a>',
+                }
+            );
 
-        const chiriinLayer = L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png',{
-            maxZoom: 18,
-            attribution: '<a href="https://maps.gsi.go.jp/development/ichiran.html">地理院地図</a>',
-        });
+            L.control.layers({
+                "OpenStreetMap": backgroundLayer,
+                "地理院地図(標準)": chiriinLayer
+            }).addTo(map);
 
-        L.control.layers({
-            "OpenStreetMap": backgroundLayer,
-            "地理院地図(標準)": chiriinLayer
-        }).addTo(map);
+            L.control.scale().addTo(map);
 
-        L.control.scale().addTo(map);
+            // ---------------------------------------------------------
+            // 2. 学校データ (第13回課題)
+            // ---------------------------------------------------------
+            fetch('./P29-21_27.geojson') 
+                .then((res) => res.json())
+                .then((json) => {
+                    L.geoJSON(json)
+                        .bindPopup((layer) => layer.feature.properties.P29_004)
+                        .addTo(map);
+                })
+                .catch((e) => console.log('学校データなし（省略可）'));
 
-        fetch('./P29-21_27.geojson')
-            .then((res) => res.json())
-            .then((json) => {
-                L.geoJSON(json).bindPopup((layer) => layer.feature.properties.P29_004).addTo(map);
-            })
-            .catch((e) => console.log('学校データなし'));
+            // ---------------------------------------------------------
+            // 3. ルート検索 (Step 16)
+            // ---------------------------------------------------------
+            // 杉本キャンパス -> 中百舌鳥キャンパス
+            const routeUrl = 'https://routing.openstreetmap.de/routed-car/route/v1/driving/135.505276,34.592331;135.506274,34.544865?geometries=geojson&overview=full';
 
-        const routeUrl = 'https://routing.openstreetmap.de/routed-car/route/v1/driving/135.505276,34.592331;135.506274,34.544865?geometries=geojson&overview=full';
-
-        async function addRouteLayer() {
-            try {
-                const response = await fetch(routeUrl);
-                const json = await response.json();
-                const routeLayer = L.geoJSON(json['routes'][0]['geometry'], {
-                    "color": "#FF00FF",
-                    "weight": 6,
-                    "opacity": 0.65
-                });
-                routeLayer.addTo(map);
-            } catch (error) {
-                console.error('ルート取得エラー:', error);
+            async function addRouteLayer() {
+                try {
+                    const response = await fetch(routeUrl);
+                    const json = await response.json();
+                    const routeLayer = L.geoJSON(json['routes'][0]['geometry'], {
+                        "color": "#FF00FF",
+                        "weight": 6,
+                        "opacity": 0.65
+                    });
+                    routeLayer.addTo(map);
+                } catch (error) {
+                    console.error('ルート取得エラー:', error);
+                }
             }
-        }
-        addRouteLayer();
+            addRouteLayer();
 
-        const shingenIconImage = L.icon({
-            iconUrl: './shingen.png',
-            iconSize: [30, 30],
-            iconAnchor: [15, 15],
-            popupAnchor: [0, -15]
-        });
+            // ---------------------------------------------------------
+            // 4. 【発展課題】地震情報の表示 (multi_eq.htmlの内容を統合)
+            // ---------------------------------------------------------
+            
+            // 震源アイコンの設定
+            const shingenIconImage = L.icon({
+                iconUrl: './shingen.png', // 同じフォルダにshingen.pngが必要
+                iconSize: [30, 30],       // サイズ調整
+                iconAnchor: [15, 15],
+                popupAnchor: [0, -15]
+            });
 
-        fetch('https://api.p2pquake.net/v2/history?codes=551')
-            .then(res => res.json())
-            .then(data => {
-                console.log("地震データ:", data);
-                data.forEach(report => {
-                    const earthquake = report.earthquake;
-                    const hypocenter = earthquake.hypocenter;
+            // P2P地震情報APIからデータを取得
+            fetch('https://api.p2pquake.net/v2/history?codes=551')
+                .then(res => res.json())
+                .then(data => {
+                    console.log("地震データ:", data);
 
-                    if (hypocenter.latitude === -1 || hypocenter.longitude === -1) return;
+                    data.forEach(report => {
+                        const earthquake = report.earthquake;
+                        const hypocenter = earthquake.hypocenter;
 
-                    const time = earthquake.time;
-                    const name = hypocenter.name;
-                    const magnitude = hypocenter.magnitude.toFixed(1);
-                    const depth = hypocenter.depth + "km";
-                    const maxScale = earthquake.maxScale / 10; 
+                        // 座標がないデータはスキップ
+                        if (hypocenter.latitude === -1 || hypocenter.longitude === -1) return;
 
-                    const popupContent = `<b>震源地: ${name}</b><br>発生時刻: ${time}<br>マグニチュード: ${magnitude}<br>深さ: ${depth}<br>最大震度: ${maxScale}`;
+                        // ポップアップの内容を作成
+                        const time = earthquake.time;
+                        const name = hypocenter.name;
+                        const magnitude = hypocenter.magnitude.toFixed(1);
+                        const depth = hypocenter.depth + "km";
+                        const maxScale = earthquake.maxScale / 10; // 震度（簡易変換）
 
-                    L.marker([hypocenter.latitude, hypocenter.longitude], { icon: shingenIconImage })
-                        .addTo(map)
-                        .bindPopup(popupContent);
-                });
-            })
-            .catch(err => console.error("地震情報の取得に失敗:", err));
-    </script>
-</body>
+                        const popupContent = `
+                            <b>震源地: ${name}</b><br>
+                            発生時刻: ${time}<br>
+                            マグニチュード: ${magnitude}<br>
+                            深さ: ${depth}<br>
+                            最大震度: ${maxScale}
+                        `;
+
+                        // 地図にマーカーを追加
+                        L.marker([hypocenter.latitude, hypocenter.longitude], { icon: shingenIconImage })
+                            .addTo(map)
+                            .bindPopup(popupContent);
+                    });
+                })
+                .catch(err => console.error("地震情報の取得に失敗:", err));
+
+        </script>
+    </body>
 </html>
