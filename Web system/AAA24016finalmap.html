@@ -75,11 +75,7 @@
                 }
             }
             addRouteLayer();
-
-            // ---------------------------------------------------------
-            // 4. 【発展課題】地震情報の表示 (multi_eq.htmlの内容を統合)
-            // ---------------------------------------------------------
-            
+    
             // 震源アイコンの設定
             const shingenIconImage = L.icon({
                 iconUrl: './shingen.png', // 同じフォルダにshingen.pngが必要
@@ -106,7 +102,7 @@
                         const name = hypocenter.name;
                         const magnitude = hypocenter.magnitude.toFixed(1);
                         const depth = hypocenter.depth + "km";
-                        const maxScale = earthquake.maxScale / 10; // 震度（簡易変換）
+                        const maxScale = earthquake.maxScale / 10; 
 
                         const popupContent = `
                             <b>震源地: ${name}</b><br>
